@@ -130,11 +130,20 @@ async def import_game_to_db(game_data: dict):
         except (ValueError, TypeError):
             price = 0  # 如果是 "free" 或其他非数字，设为0
         
+        # 安全处理类型（可能是字典或字符串）
+        genre_raw = game_data.get("genre", {})
+        if isinstance(genre_raw, dict):
+            genres = list(genre_raw.keys())
+        elif isinstance(genre_raw, str):
+            genres = [genre_raw] if genre_raw else []
+        else:
+            genres = []
+        
         game_info = {
             "app_id": app_id,
             "name": game_data.get("name", "Unknown"),
             "price": price,
-            "genres": list(game_data.get("genre", {}).keys()) if game_data.get("genre") else [],
+            "genres": genres,
             "positive_reviews": game_data.get("positive", 0),
             "negative_reviews": game_data.get("negative", 0),
             "owners": game_data.get("owners", "0"),
