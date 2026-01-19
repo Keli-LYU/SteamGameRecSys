@@ -245,20 +245,22 @@ async def crawl_and_update():
 # ============================================
 async def quick_update_top_games():
     """
-    快速更新模式：只更新前1000款热门游戏
+    快速更新模式：只更新前100款热门游戏
     适用于每日增量更新
     """
-    print("⚡ 快速更新模式 - Top 1000游戏")
+    print("⚡ 快速更新模式 - Top 100游戏")
     
     await init_database()
     
-    print("\n📡 获取Top 1000游戏...")
+    print("\n📡 获取Top 100游戏...")
     async with httpx.AsyncClient(timeout=60.0) as client:
         url = f"{STEAMSPY_BASE_URL}?request=all&page=0"
         response = await client.get(url)
         response.raise_for_status()
         games_list = response.json()
     
+    # 只取前100个游戏
+    games_list = dict(list(games_list.items())[:100])
     print(f"✅ 获取到 {len(games_list)} 款游戏")
     
     stats = {"inserted": 0, "updated": 0, "failed": 0}
@@ -273,7 +275,7 @@ async def quick_update_top_games():
             else:
                 stats["failed"] += 1
             
-            if i % 100 == 0:
+            if i % 20 == 0:
                 print(f"  进度: {i}/{len(games_list)} | 新增: {stats['inserted']} | 更新: {stats['updated']}")
             
             await asyncio.sleep(0.5)
