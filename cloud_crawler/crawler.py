@@ -123,10 +123,17 @@ async def import_game_to_db(game_data: dict):
         # 检查游戏是否已存在
         existing_game = await Game.find_one(Game.app_id == app_id)
         
+        # 安全处理价格（可能是字符串或数字）
+        price_raw = game_data.get("price", 0)
+        try:
+            price = float(price_raw) / 100 if price_raw else 0
+        except (ValueError, TypeError):
+            price = 0  # 如果是 "free" 或其他非数字，设为0
+        
         game_info = {
             "app_id": app_id,
             "name": game_data.get("name", "Unknown"),
-            "price": game_data.get("price", 0) / 100 if game_data.get("price") else 0,
+            "price": price,
             "genres": list(game_data.get("genre", {}).keys()) if game_data.get("genre") else [],
             "positive_reviews": game_data.get("positive", 0),
             "negative_reviews": game_data.get("negative", 0),
