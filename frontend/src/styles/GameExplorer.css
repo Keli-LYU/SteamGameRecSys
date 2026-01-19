@@ -1,0 +1,316 @@
+/* Game Explorer Styles */
+.game-explorer {
+    max-width: 1400px;
+}
+
+/* Search Section */
+.search-section {
+    margin-bottom: 30px;
+}
+
+.search-input {
+    width: 100%;
+    max-width: 500px;
+    padding: 14px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+    transform: translateY(-2px);
+}
+
+/* Top Games Section */
+.top-games-section {
+    margin-bottom: 50px;
+}
+
+.top-games-section h2 {
+    color: white;
+    font-size: 28px;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.top-games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.top-game-card {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.top-game-card .game-content {
+    flex: 1;
+}
+
+.top-game-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.top-game-card h3 {
+    font-size: 16px;
+    margin-bottom: 12px;
+    color: #2d3748;
+    font-weight: 600;
+}
+
+/* Game Tags/Genres */
+.game-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.game-tags .tag {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: capitalize;
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+}
+
+.top-game-card .reviews {
+    display: flex;
+    gap: 12px;
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.reviews .positive {
+    color: #10b981;
+}
+
+.reviews .negative {
+    color: #ef4444;
+}
+
+/* Add Button in Top Games */
+.add-button {
+    width: 100%;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.add-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+    background: linear-gradient(135deg, #5568d3 0%, #6a3d8d 100%);
+}
+
+.add-button:active {
+    transform: translateY(0);
+}
+
+/* Recommended Games Section */
+.recommended-games-section {
+    margin-top: 50px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.section-header h2 {
+    color: white;
+    font-size: 28px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.refresh-button {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.refresh-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.5);
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.refresh-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.refresh-button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.loading-spinner {
+    display: flex;
+    justify-content: center;
+    padding: 40px;
+}
+
+.recommended-games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.recommended-game-card {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.recommended-game-card .game-content {
+    flex: 1;
+}
+
+.recommended-game-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.recommended-game-card h3 {
+    font-size: 16px;
+    margin-bottom: 10px;
+    color: #2d3748;
+    font-weight: 600;
+}
+
+.game-price-display {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+    margin-bottom: 8px;
+}
+
+/* Games Section */
+.games-section {
+    margin-top: 40px;
+}
+
+.games-section h2 {
+    color: white;
+    font-size: 28px;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+}
+
+.game-card {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 24px;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.game-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.game-card h3 {
+    font-size: 18px;
+    color: #1a202c;
+    font-weight: 700;
+    flex: 1;
+}
+
+.game-price {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.game-genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.genre-tag {
+    background: #e2e8f0;
+    color: #4a5568;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.game-description {
+    color: #4a5568;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.game-reviews {
+    display: flex;
+    gap: 16px;
+    font-size: 14px;
+    padding-top: 8px;
+    border-top: 1px solid #e2e8f0;
+}

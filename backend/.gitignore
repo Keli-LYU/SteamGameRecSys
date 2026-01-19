@@ -1,0 +1,35 @@
+# Ignore Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Environment variables
+.env
+.env.local
+
+# Local database files
+*.db
+*.db-journal
+data/user_preferences.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# HuggingFace cache (large model files)
+.cache/
+transformers/
+
+# OS
+.DS_Store
+Thumbs.db

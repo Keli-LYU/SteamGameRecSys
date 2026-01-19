@@ -1,0 +1,136 @@
+# ============================================
+# Backend Deployment for Kubernetes
+# ============================================
+# 部署位置: AWS EKS
+# 特点: 包含BERT模型的FastAPI服务
+# 
+# 关键配置:
+# - 资源限制: 2GB内存支持BERT推理
+# - 环境变量: MongoDB连接字符串指向Minikube
+# - 健康检查: 确保模型加载完成后才接收流量
+# ============================================
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: default
+data:
+  # MongoDB连接配置 - 指向本地Minikube
+  # 注意: 需要配置VPN或Tunnel连接本地Minikube
+  # 示例: minikube ip -> 192.168.49.2
+  # 实际部署时替换为真实IP或域名
+  MONGODB_URL: "mongodb://<MINIKUBE_IP>:30017"
+  DATABASE_NAME: "steamgamerec"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: default
+  labels:
+    app: backend
+spec:
+  replicas: 2  # 初始副本数
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: steamgamerec/backend:latest  # 替换为实际镜像仓库地址
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: MONGODB_URL
+          valueFrom:
+            configMapKeyRef:
+              name: backend-config
+              key: MONGODB_URL
+        - name: DATABASE_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: backend-config
+              key: DATABASE_NAME
+        
+        # 资源配置 - 关键: BERT模型需要足够内存
+        resources:
+          requests:
+            memory: "1536Mi"  # 1.5GB
+            cpu: "500m"       # 0.5 CPU核心
+          limits:
+            memory: "2Gi"     # 2GB上限
+            cpu: "1000m"      # 1 CPU核心上限
+        
+        # 健康检查
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 60  # BERT模型加载需要时间
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 45
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: default
+  labels:
+    app: backend
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP
+      name: http
+  selector:
+    app: backend
+
+---
+# Horizontal Pod Autoscaler (HPA)
+# 基于CPU使用率自动扩缩容
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: backend-hpa
+  namespace: default
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: backend
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70  # 当CPU使用率超过70%时扩容
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80  # 当内存使用率超过80%时扩容

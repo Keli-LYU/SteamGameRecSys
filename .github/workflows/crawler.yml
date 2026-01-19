@@ -1,0 +1,54 @@
+name: Steam Data Crawler (Cloud)
+on:
+  schedule:
+    # 每天凌晨2点UTC运行（北京时间10点）
+    - cron: '0 2 * * *'
+  
+  # 允许手动触发
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: '爬取模式 (quick/full)'
+        required: false
+        default: 'quick'
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout代码
+        uses: actions/checkout@v3
+      
+      - name: 设置Python环境
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: 安装依赖
+        run: |
+          pip install httpx motor beanie pydantic
+      
+      - name: 运行爬虫（快速模式）
+        if: github.event.inputs.mode != 'full'
+        env:
+          MONGODB_URL: ${{ secrets.MONGODB_ATLAS_URI }}
+          DATABASE_NAME: steamgamerec
+        run: |
+          cd cloud_crawler
+          python crawler.py quick
+      
+      - name: 运行爬虫（完整模式）
+        if: github.event.inputs.mode == 'full'
+        env:
+          MONGODB_URL: ${{ secrets.MONGODB_ATLAS_URI }}
+          DATABASE_NAME: steamgamerec
+        run: |
+          cd cloud_crawler
+          python crawler.py full
+      
+      - name: 发送通知（可选）
+        if: always()
+        run: |
+          echo "爬虫任务完成，状态: ${{ job.status }}"
+          # 可以在这里添加钉钉/企业微信/邮件通知

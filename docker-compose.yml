@@ -1,0 +1,73 @@
+version: '3.8'
+
+# ============================================
+# Docker Compose - Local Development
+# ============================================
+# 用于本地开发测试,无需Kubernetes
+# 运行: docker-compose up --build
+# ============================================
+
+services:
+  # MongoDB数据库
+  mongodb:
+    image: mongo:7.0
+    container_name: steamgamerec-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: steamgamerec
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - steamgamerec-network
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend服务 (FastAPI + BERT)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: steamgamerec-backend
+    ports:
+      - "8000:8000"
+    environment:
+      MONGODB_URL: mongodb://mongodb:27017
+      DATABASE_NAME: steamgamerec
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - steamgamerec-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s # BERT模型加载时间
+
+  # Frontend服务 (React + Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_API_URL: http://localhost:8000
+    container_name: steamgamerec-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - steamgamerec-network
+
+networks:
+  steamgamerec-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local

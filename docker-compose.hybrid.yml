@@ -1,0 +1,73 @@
+version: '3.8'
+
+# ============================================
+# Docker Compose - 混合云架构
+# ============================================
+# 云端MongoDB Atlas + 本地计算服务
+# 数据库和爬虫在云端，推荐系统和情感分析在本地
+# ============================================
+
+services:
+  # Backend服务 (FastAPI + BERT) - 本地计算
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: steamgamerec-backend
+    ports:
+      - "8000:8000"
+    environment:
+      # 云端MongoDB Atlas连接（从.env文件读取）
+      MONGODB_URL: ${MONGODB_ATLAS_URI:-mongodb://localhost:27017}
+      DATABASE_NAME: ${DATABASE_NAME:-steamgamerec}
+      # 本地用户偏好存储路径
+      USER_PREFS_DB: /app/data/user_preferences.db
+    volumes:
+      # 本地数据持久化（用户偏好、缓存等）
+      - user_data:/app/data
+    networks:
+      - steamgamerec-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s # BERT模型加载时间
+
+  # Frontend服务 (React + Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_API_URL: http://localhost:8000
+    container_name: steamgamerec-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - steamgamerec-network
+
+networks:
+  steamgamerec-network:
+    driver: bridge
+
+volumes:
+  # 本地用户数据卷（SQLite数据库）
+  user_data:
+    driver: local
+
+# ============================================
+# 环境变量配置说明
+# ============================================
+# 创建 .env 文件在项目根目录：
+#
+# MONGODB_ATLAS_URI=mongodb+srv://username:password@cluster.mongodb.net/
+# DATABASE_NAME=steamgamerec
+#
+# 注意：
+# 1. MONGODB_ATLAS_URI 是云端数据库连接字符串
+# 2. 从MongoDB Atlas获取（Database > Connect > Drivers）
+# 3. 不要提交.env文件到Git仓库
+# ============================================

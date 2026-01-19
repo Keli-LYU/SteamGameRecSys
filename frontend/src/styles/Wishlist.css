@@ -1,0 +1,179 @@
+/* Wishlist Styles */
+.wishlist {
+    max-width: 1400px;
+}
+
+/* Search Section */
+.search-section {
+    margin-bottom: 30px;
+}
+
+.search-input {
+    width: 100%;
+    max-width: 500px;
+    padding: 14px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+    transform: translateY(-2px);
+}
+
+/* Wishlist Section */
+.wishlist-section {
+    margin-top: 40px;
+}
+
+.wishlist-section h2 {
+    color: white;
+    font-size: 28px;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+}
+
+.game-card {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 24px;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.game-card .game-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.game-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.game-card h3 {
+    font-size: 18px;
+    color: #1a202c;
+    font-weight: 700;
+    flex: 1;
+}
+
+.game-price {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.game-genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.genre-tag {
+    background: #e2e8f0;
+    color: #4a5568;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.game-description {
+    color: #4a5568;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.game-reviews {
+    display: flex;
+    gap: 16px;
+    font-size: 14px;
+    padding-top: 8px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.game-reviews .positive {
+    color: #10b981;
+    font-weight: 600;
+}
+
+.game-reviews .negative {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+/* Remove Button */
+.remove-button {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.remove-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.5);
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}
+
+.remove-button:active {
+    transform: translateY(0);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.empty-state p {
+    color: #718096;
+    font-size: 18px;
+}
+
+/* Error Banner */
+.error-banner {
+    background: #fee;
+    color: #c33;
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border-left: 4px solid #c33;
+}

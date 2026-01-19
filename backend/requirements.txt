@@ -1,0 +1,30 @@
+# ============================================
+# SteamGameRecSys Backend Dependencies
+# ============================================
+# 说明: 此文件包含后端所需的所有Python依赖
+# 注意: PyTorch使用CPU版本以减少Docker镜像体积
+
+# Web Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# Database (MongoDB)
+motor==3.6.0              # Async MongoDB driver
+pymongo==4.9.1            # MongoDB driver (compatible with motor 3.6.0)
+beanie==1.23.6            # ODM for MongoDB
+pydantic==2.5.0           # Data validation
+pydantic-settings==2.1.0
+
+# AI/NLP (BERT Sentiment Analysis)
+torch==2.1.1              # PyTorch (CPU版本)
+transformers==4.35.2      # HuggingFace transformers
+sentencepiece==0.1.99     # Tokenizer support
+numpy==1.26.2             # NumPy for tensor operations
+
+# Steam API Integration
+steamspypi==1.1.1         # SteamSpy API wrapper
+
+# Utilities
+python-dotenv==1.0.0      # Environment variables
+httpx==0.25.2             # Async HTTP client
