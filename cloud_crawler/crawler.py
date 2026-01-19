@@ -50,12 +50,19 @@ class Game(Document):
 async def init_database():
     """连接MongoDB Atlas"""
     print(f"🔗 正在连接MongoDB Atlas...")
-    client = AsyncIOMotorClient(MONGODB_URL)
-    await init_beanie(
-        database=client[DATABASE_NAME],
-        document_models=[Game]
-    )
-    print(f"✅ 已连接到数据库: {DATABASE_NAME}")
+    print(f"📍 连接URI: {MONGODB_URL[:50]}...") if len(MONGODB_URL) > 50 else print(f"📍 连接URI: {MONGODB_URL}")
+    print(f"📦 数据库名: {DATABASE_NAME}")
+    
+    try:
+        client = AsyncIOMotorClient(MONGODB_URL, serverSelectionTimeoutMS=10000)
+        await init_beanie(
+            database=client[DATABASE_NAME],
+            document_models=[Game]
+        )
+        print(f"✅ 已连接到数据库: {DATABASE_NAME}")
+    except Exception as e:
+        print(f"❌ 数据库连接失败: {e}")
+        raise
 
 
 # ============================================
