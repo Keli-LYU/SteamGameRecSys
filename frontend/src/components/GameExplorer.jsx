@@ -60,20 +60,18 @@ function GameExplorer() {
         openSteamPage(appId);
     };
 
-    // 从Steam添加游戏到数据库
+    // 添加游戏到wishlist
     const addGameToLibrary = async (appId) => {
         try {
-            // 首先从Steam获取完整游戏信息
-            const gameResponse = await axios.get(`${API_BASE_URL}/steam/${appId}`);
-            const gameData = gameResponse.data;
-
-            // 然后保存到数据库
-            await axios.post(`${API_BASE_URL}/games`, gameData);
-            
-            alert(`${gameData.name} has been added to your wishlist!`);
+            const response = await axios.post(`${API_BASE_URL}/wishlist/${appId}?user_id=default_user`);
+            alert(response.data.message);
         } catch (err) {
             console.error('Failed to add game:', err);
-            alert('Failed to add game to wishlist');
+            if (err.response?.data?.detail) {
+                alert(`Failed: ${err.response.data.detail}`);
+            } else {
+                alert('Failed to add game to wishlist');
+            }
         }
     };
 

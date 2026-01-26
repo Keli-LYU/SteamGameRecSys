@@ -22,7 +22,7 @@ function Wishlist() {
     const loadGames = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${API_BASE_URL}/games`);
+            const response = await axios.get(`${API_BASE_URL}/wishlist?user_id=default_user`);
             setGames(response.data);
             setError(null);
         } catch (err) {
@@ -32,13 +32,13 @@ function Wishlist() {
             setLoading(false);
         }
     };
-    const removeFromWishlist = async (gameId, gameName) => {
+    const removeFromWishlist = async (appId, gameName) => {
         if (!window.confirm(`Remove "${gameName}" from your wishlist?`)) {
             return;
         }
         
         try {
-            await axios.delete(`${API_BASE_URL}/games/${gameId}`);
+            await axios.delete(`${API_BASE_URL}/wishlist/${appId}?user_id=default_user`);
             await loadGames();
             alert(`${gameName} has been removed from your wishlist`);
         } catch (err) {
@@ -138,7 +138,7 @@ function Wishlist() {
                                     className="remove-button"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        removeFromWishlist(game._id, game.name);
+                                        removeFromWishlist(game.app_id, game.name);
                                     }}
                                     title="Remove from wishlist"
                                 >

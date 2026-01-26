@@ -18,7 +18,7 @@ from typing import List, Optional
 from datetime import datetime
 
 from app.database import init_db, close_db
-from app.models import Game, SentimentLog, SentimentRequest, SentimentResponse, UserPreference
+from app.models import Game, SentimentLog, SentimentRequest, SentimentResponse, UserPreference, User
 from app.nlp_service import predict_sentiment, warmup_model
 from app.steam_service import steam_service
 from app.local_storage import get_preference_store
@@ -459,6 +459,142 @@ async def get_sentiment_history(skip: int = 0, limit: int = 50):
         
     except Exception as e:
         logger.error(f"Failed to fetch history: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================
+# API路由 - Wishlist管理
+# ============================================
+@app.get("/wishlist")
+async def get_wishlist(user_id: str = "default_user"):
+    """
+    获取用户的wishlist游戏列表
+    
+    Query参数:
+    - user_id: 用户ID (默认: default_user)
+    
+    返回: 用户收藏的游戏详细信息列表
+    """
+    try:
+        # 获取或创建用户
+        user = await User.find_one(User.user_id == user_id)
+        if not user:
+            user = User(user_id=user_id, username=user_id, favorite_games=[])
+            await user.insert()
+        
+        # 如果wishlist为空，返回空列表
+        if not user.favorite_games:
+            return []
+        
+        # 获取wishlist中游戏的详细信息
+        games = await Game.find({"app_id": {"$in": user.favorite_games}}).to_list()
+        
+        # 规范化genres格式并添加_id字段
+        result = []
+        for game in games:
+            game_dict = game.dict()
+            game_dict["genres"] = normalize_genres(game.genres)
+            game_dict["_id"] = str(game.id)
+            result.append(game_dict)
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Failed to fetch wishlist: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/wishlist/{app_id}")
+async def add_to_wishlist(app_id: int, user_id: str = "default_user"):
+    """
+    添加游戏到用户wishlist
+    
+    Path参数:
+    - app_id: Steam App ID
+    
+    Query参数:
+    - user_id: 用户ID (默认: default_user)
+    
+    流程:
+    1. 从Steam获取游戏信息（如果数据库中不存在）
+    2. 保存游戏到games集合（全局游戏库）
+    3. 添加app_id到用户的favorite_games列表
+    """
+    try:
+        # 检查游戏是否已在全局游戏库中
+        game = await Game.find_one(Game.app_id == app_id)
+        
+        if not game:
+            # 从Steam获取游戏信息
+            game_data = await steam_service.get_game_details(app_id)
+            if not game_data:
+                raise HTTPException(status_code=404, detail=f"Game {app_id} not found on Steam")
+            
+            # 保存到全局游戏库
+            game = Game(**game_data)
+            await game.insert()
+            logger.info(f"Added new game to library: {game.name}")
+        
+        # 获取或创建用户
+        user = await User.find_one(User.user_id == user_id)
+        if not user:
+            user = User(user_id=user_id, username=user_id, favorite_games=[])
+            await user.insert()
+        
+        # 检查是否已在wishlist中
+        if app_id in user.favorite_games:
+            return {"message": "Game already in wishlist", "app_id": app_id, "name": game.name}
+        
+        # 添加到wishlist
+        user.favorite_games.append(app_id)
+        user.last_active = datetime.utcnow()
+        await user.save()
+        
+        logger.info(f"Added game {game.name} to {user_id}'s wishlist")
+        return {"message": "Game added to wishlist", "app_id": app_id, "name": game.name}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to add to wishlist: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/wishlist/{app_id}")
+async def remove_from_wishlist(app_id: int, user_id: str = "default_user"):
+    """
+    从用户wishlist中移除游戏
+    
+    Path参数:
+    - app_id: Steam App ID
+    
+    Query参数:
+    - user_id: 用户ID (默认: default_user)
+    
+    注意: 只从用户wishlist中移除，不会删除全局游戏库中的游戏
+    """
+    try:
+        # 获取用户
+        user = await User.find_one(User.user_id == user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # 检查游戏是否在wishlist中
+        if app_id not in user.favorite_games:
+            raise HTTPException(status_code=404, detail="Game not in wishlist")
+        
+        # 从wishlist中移除
+        user.favorite_games.remove(app_id)
+        user.last_active = datetime.utcnow()
+        await user.save()
+        
+        logger.info(f"Removed game {app_id} from {user_id}'s wishlist")
+        return {"message": "Game removed from wishlist", "app_id": app_id}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to remove from wishlist: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
