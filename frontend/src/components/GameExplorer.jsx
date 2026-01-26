@@ -8,12 +8,23 @@ import '../styles/GameExplorer.css';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
+// 获取Steam游戏图片URL
+const getSteamImageUrl = (appId, imageType = 'header') => {
+    const imageTypes = {
+        header: `https://cdn.akamai.steamstatic.com/steam/apps/${appId}/header.jpg`,
+        capsule: `https://cdn.akamai.steamstatic.com/steam/apps/${appId}/capsule_231x87.jpg`,
+        library: `https://cdn.akamai.steamstatic.com/steam/apps/${appId}/library_600x900.jpg`,
+    };
+    return imageTypes[imageType] || imageTypes.header;
+};
+
 function GameExplorer() {
     const [topGames, setTopGames] = useState([]);
     const [recommendedGames, setRecommendedGames] = useState([]);
     const [loading, setLoading] = useState(true);
     const [loadingRecommendations, setLoadingRecommendations] = useState(false);
     const [error, setError] = useState(null);
+    const [imageErrors, setImageErrors] = useState({});
 
     // 加载游戏数据
     useEffect(() => {
@@ -79,6 +90,10 @@ function GameExplorer() {
         window.open(`https://store.steampowered.com/app/${appId}`, '_blank');
     };
 
+    const handleImageError = (appId) => {
+        setImageErrors(prev => ({ ...prev, [appId]: true }));
+    };
+
     if (loading) {
         return (
             <div className="loading-container">
@@ -107,6 +122,22 @@ function GameExplorer() {
                 <div className="top-games-grid">
                     {topGames.map(game => (
                         <div key={game.app_id} className="top-game-card">
+                            {/* Game Image */}
+                            <div className="game-image-container" onClick={() => openSteamPage(game.app_id)}>
+                                {!imageErrors[game.app_id] ? (
+                                    <img 
+                                        src={getSteamImageUrl(game.app_id, 'header')} 
+                                        alt={game.name}
+                                        className="game-image"
+                                        onError={() => handleImageError(game.app_id)}
+                                    />
+                                ) : (
+                                    <div className="game-image-placeholder">
+                                        <span>🎮</span>
+                                    </div>
+                                )}
+                            </div>
+                            
                             <div 
                                 className="game-content"
                                 onClick={() => openSteamPage(game.app_id)}
@@ -164,6 +195,22 @@ function GameExplorer() {
                     <div className="recommended-games-grid">
                         {recommendedGames.map(game => (
                             <div key={game.app_id || game._id} className="recommended-game-card">
+                                {/* Game Image */}
+                                <div className="game-image-container" onClick={() => handleRecommendedGameClick(game.app_id)}>
+                                    {!imageErrors[game.app_id] ? (
+                                        <img 
+                                            src={getSteamImageUrl(game.app_id, 'header')} 
+                                            alt={game.name}
+                                            className="game-image"
+                                            onError={() => handleImageError(game.app_id)}
+                                        />
+                                    ) : (
+                                        <div className="game-image-placeholder">
+                                            <span>🎮</span>
+                                        </div>
+                                    )}
+                                </div>
+                                
                                 <div 
                                     className="game-content"
                                     onClick={() => handleRecommendedGameClick(game.app_id)}

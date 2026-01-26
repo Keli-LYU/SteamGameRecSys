@@ -274,7 +274,8 @@ async def get_recommendations(user_id: str = "default_user", limit: int = 10):
     推荐逻辑:
     1. 从本地SQLite获取用户偏好权重
     2. 从云端MongoDB获取所有游戏
-    3. 计算匹配分数并返回得分最高的游戏
+    3. 计算匹配分数并引入随机性
+    4. 80%基于偏好推荐 + 20%探索性推荐（增加多样性）
     """
     try:
         # 使用本地SQLite获取用户偏好
@@ -291,9 +292,23 @@ async def get_recommendations(user_id: str = "default_user", limit: int = 10):
         # 如果没有偏好或偏好为空，随机返回
         if not prefs or not prefs.get("genre_weights"):
             random.shuffle(all_games)
-            return all_games[:limit]
+            result = []
+            for game in all_games[:limit]:
+                game_dict = {
+                    "_id": str(game.id),
+                    "app_id": game.app_id,
+                    "name": game.name,
+                    "price": game.price,
+                    "genres": normalize_genres(game.genres),
+                    "description": game.description,
+                    "positive_reviews": game.positive_reviews,
+                    "negative_reviews": game.negative_reviews,
+                }
+                result.append(game_dict)
+            return result
         
         genre_weights = prefs["genre_weights"]
+        clicked_games = set(prefs.get("clicked_games", []))
         
         # 根据偏好权重计算每个游戏的得分
         scored_games = []
@@ -301,9 +316,23 @@ async def get_recommendations(user_id: str = "default_user", limit: int = 10):
             # 规范化genres格式
             genres = normalize_genres(game.genres)
             
+            # 基础得分：偏好匹配
             score = 0
             for genre in genres:
                 score += genre_weights.get(genre, 0)
+            
+            # 添加随机因子（增加多样性，避免总是推荐相同游戏）
+            random_factor = random.uniform(0, 0.3) * score if score > 0 else random.uniform(0, 1)
+            score += random_factor
+            
+            # 降低已点击游戏的权重（但不完全排除）
+            if game.app_id in clicked_games:
+                score *= 0.7
+            
+            # 考虑评价数量（热门度）
+            if game.positive_reviews:
+                popularity_score = min(game.positive_reviews / 10000, 1.0)  # 归一化到0-1
+                score += popularity_score * 0.5
             
             scored_games.append({
                 "_id": str(game.id),
@@ -320,13 +349,31 @@ async def get_recommendations(user_id: str = "default_user", limit: int = 10):
         # 按得分排序（降序）
         scored_games.sort(key=lambda x: x["score"], reverse=True)
         
-        # 移除score字段并返回
-        recommended = []
-        for game in scored_games[:limit]:
-            game.pop("score")
-            recommended.append(game)
+        # 混合推荐策略：80%基于偏好 + 20%探索性
+        exploitation_count = int(limit * 0.8)  # 基于偏好的推荐
+        exploration_count = limit - exploitation_count  # 探索性推荐
         
-        return recommended
+        # 从高分游戏中选择
+        top_games = scored_games[:max(exploitation_count * 2, 20)]
+        random.shuffle(top_games)
+        recommended = top_games[:exploitation_count]
+        
+        # 添加探索性推荐（从剩余游戏中随机选择）
+        if exploration_count > 0 and len(scored_games) > exploitation_count:
+            remaining_games = scored_games[exploitation_count:]
+            random.shuffle(remaining_games)
+            recommended.extend(remaining_games[:exploration_count])
+        
+        # 再次打乱以避免固定顺序
+        random.shuffle(recommended)
+        
+        # 移除score字段并返回
+        result = []
+        for game in recommended[:limit]:
+            game.pop("score")
+            result.append(game)
+        
+        return result
         
     except Exception as e:
         logger.error(f"Failed to get recommendations: {e}")

@@ -40,22 +40,52 @@
 
 .top-games-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
 }
 
 .top-game-card {
     background: rgba(255, 255, 255, 0.95);
-    padding: 20px;
-    border-radius: 12px;
+    border-radius: 16px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+}
+
+.top-game-card .game-image-container {
+    width: 100%;
+    height: 130px;
+    overflow: hidden;
+    cursor: pointer;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;
+}
+
+.top-game-card .game-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.top-game-card:hover .game-image {
+    transform: scale(1.05);
+}
+
+.game-image-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-size: 48px;
 }
 
 .top-game-card .game-content {
+    padding: 16px;
     flex: 1;
 }
 
@@ -186,22 +216,42 @@
 
 .recommended-games-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
 }
 
 .recommended-game-card {
     background: rgba(255, 255, 255, 0.95);
-    padding: 20px;
-    border-radius: 12px;
+    border-radius: 16px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+}
+
+.recommended-game-card .game-image-container {
+    width: 100%;
+    height: 130px;
+    overflow: hidden;
+    cursor: pointer;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;
+}
+
+.recommended-game-card .game-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.recommended-game-card:hover .game-image {
+    transform: scale(1.05);
 }
 
 .recommended-game-card .game-content {
+    padding: 16px;
     flex: 1;
 }
 
