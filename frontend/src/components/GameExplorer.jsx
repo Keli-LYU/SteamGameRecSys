@@ -25,11 +25,13 @@ function GameExplorer() {
     const [loadingRecommendations, setLoadingRecommendations] = useState(false);
     const [error, setError] = useState(null);
     const [imageErrors, setImageErrors] = useState({});
+    const [wishlistAppIds, setWishlistAppIds] = useState(new Set());
 
-    // 加载游戏数据
+    // 加载游戏数据和愿望单
     useEffect(() => {
         loadTopGames();
         loadRecommendations();
+        loadWishlist();
     }, []);
 
     const loadTopGames = async () => {
@@ -58,6 +60,16 @@ function GameExplorer() {
         }
     };
 
+    const loadWishlist = async () => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/wishlist?user_id=default_user`);
+            const appIds = new Set(response.data.map(game => game.app_id));
+            setWishlistAppIds(appIds);
+        } catch (err) {
+            console.error('Failed to load wishlist:', err);
+        }
+    };
+
     const recordGameClick = async (appId) => {
         try {
             await axios.post(`${API_BASE_URL}/preferences/click?app_id=${appId}`);
@@ -76,6 +88,8 @@ function GameExplorer() {
         try {
             const response = await axios.post(`${API_BASE_URL}/wishlist/${appId}?user_id=default_user`);
             alert(response.data.message);
+            // 更新本地wishlist状态
+            setWishlistAppIds(prev => new Set([...prev, appId]));
         } catch (err) {
             console.error('Failed to add game:', err);
             if (err.response?.data?.detail) {
@@ -84,6 +98,11 @@ function GameExplorer() {
                 alert('Failed to add game to wishlist');
             }
         }
+    };
+
+    // 检查游戏是否已在wishlist中
+    const isInWishlist = (appId) => {
+        return wishlistAppIds.has(appId);
     };
 
     const openSteamPage = (appId) => {
@@ -160,14 +179,17 @@ function GameExplorer() {
                                 </div>
                             </div>
                             <button 
-                                className="add-button"
+                                className={`add-button ${isInWishlist(game.app_id) ? 'in-wishlist' : ''}`}
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    addGameToLibrary(game.app_id);
+                                    if (!isInWishlist(game.app_id)) {
+                                        addGameToLibrary(game.app_id);
+                                    }
                                 }}
-                                title="Add to your wishlist"
+                                title={isInWishlist(game.app_id) ? "Already in wishlist" : "Add to your wishlist"}
+                                disabled={isInWishlist(game.app_id)}
                             >
-                                Add to Wishlist
+                                {isInWishlist(game.app_id) ? '✓ In Wishlist' : 'Add to Wishlist'}
                             </button>
                         </div>
                     ))}
@@ -240,6 +262,19 @@ function GameExplorer() {
                                         </div>
                                     )}
                                 </div>
+                                <button 
+                                    className={`add-button ${isInWishlist(game.app_id) ? 'in-wishlist' : ''}`}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (!isInWishlist(game.app_id)) {
+                                            addGameToLibrary(game.app_id);
+                                        }
+                                    }}
+                                    title={isInWishlist(game.app_id) ? "Already in wishlist" : "Add to your wishlist"}
+                                    disabled={isInWishlist(game.app_id)}
+                                >
+                                    {isInWishlist(game.app_id) ? '✓ In Wishlist' : 'Add to Wishlist'}
+                                </button>
                             </div>
                         ))}
                     </div>

@@ -321,18 +321,22 @@ async def get_recommendations(user_id: str = "default_user", limit: int = 10):
             for genre in genres:
                 score += genre_weights.get(genre, 0)
             
-            # 添加随机因子（增加多样性，避免总是推荐相同游戏）
-            random_factor = random.uniform(0, 0.3) * score if score > 0 else random.uniform(0, 1)
+            # 添加较大的随机因子（增加多样性，避免总是推荐相同游戏）
+            # 随机因子范围：0-100%的基础得分，确保每次推荐都有显著变化
+            if score > 0:
+                random_factor = random.uniform(0, score)  # 0-100%随机波动
+            else:
+                random_factor = random.uniform(0, 5)  # 无偏好时给予基础随机分
             score += random_factor
             
             # 降低已点击游戏的权重（但不完全排除）
             if game.app_id in clicked_games:
                 score *= 0.7
             
-            # 考虑评价数量（热门度）
+            # 考虑评价数量（热门度）- 也添加随机波动
             if game.positive_reviews:
                 popularity_score = min(game.positive_reviews / 10000, 1.0)  # 归一化到0-1
-                score += popularity_score * 0.5
+                score += popularity_score * random.uniform(0.3, 0.8)  # 0.3-0.8随机权重
             
             scored_games.append({
                 "_id": str(game.id),
@@ -349,23 +353,40 @@ async def get_recommendations(user_id: str = "default_user", limit: int = 10):
         # 按得分排序（降序）
         scored_games.sort(key=lambda x: x["score"], reverse=True)
         
-        # 混合推荐策略：80%基于偏好 + 20%探索性
-        exploitation_count = int(limit * 0.8)  # 基于偏好的推荐
-        exploration_count = limit - exploitation_count  # 探索性推荐
+        # 完全随机化策略：从所有游戏中随机选择，但高分游戏概率更高
+        # 为了增加多样性，我们使用加权随机而不是简单排序
         
-        # 从高分游戏中选择
-        top_games = scored_games[:max(exploitation_count * 2, 20)]
-        random.shuffle(top_games)
-        recommended = top_games[:exploitation_count]
+        # 计算总分用于加权随机
+        total_score = sum(g["score"] for g in scored_games)
         
-        # 添加探索性推荐（从剩余游戏中随机选择）
-        if exploration_count > 0 and len(scored_games) > exploitation_count:
-            remaining_games = scored_games[exploitation_count:]
-            random.shuffle(remaining_games)
-            recommended.extend(remaining_games[:exploration_count])
-        
-        # 再次打乱以避免固定顺序
-        random.shuffle(recommended)
+        if total_score > 0:
+            # 使用加权随机选择
+            recommended = []
+            available_games = scored_games.copy()
+            
+            for _ in range(min(limit, len(available_games))):
+                # 重新计算当前可用游戏的总分
+                current_total = sum(g["score"] for g in available_games)
+                if current_total == 0:
+                    # 如果分数都为0，完全随机选择
+                    selected = random.choice(available_games)
+                else:
+                    # 加权随机选择
+                    rand_val = random.uniform(0, current_total)
+                    cumulative = 0
+                    selected = available_games[0]
+                    for game in available_games:
+                        cumulative += game["score"]
+                        if cumulative >= rand_val:
+                            selected = game
+                            break
+                
+                recommended.append(selected)
+                available_games.remove(selected)
+        else:
+            # 完全随机选择
+            random.shuffle(scored_games)
+            recommended = scored_games[:limit]
         
         # 移除score字段并返回
         result = []
