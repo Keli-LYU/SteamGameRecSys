@@ -411,7 +411,7 @@ async def record_game_click(app_id: int, user_id: str = "default_user"):
         if prefs is None:
             prefs = {"genre_weights": {}, "clicked_games": []}
         
-        # 更新类型权重（每次点击增加1）
+        # 更新类型权重（点击增加1分 - 表示浏览兴趣）
         for genre in genres:
             prefs["genre_weights"][genre] = prefs["genre_weights"].get(genre, 0) + 1
         
@@ -597,8 +597,27 @@ async def add_to_wishlist(app_id: int, user_id: str = "default_user"):
         user.last_active = datetime.utcnow()
         await user.save()
         
-        logger.info(f"Added game {game.name} to {user_id}'s wishlist")
-        return {"message": "Game added to wishlist", "app_id": app_id, "name": game.name}
+        # 更新用户偏好权重（加入愿望单增加5分 - 表示强烈兴趣）
+        store = get_preference_store()
+        prefs = store.get_user_preference(user_id)
+        if prefs is None:
+            prefs = {"genre_weights": {}, "clicked_games": []}
+        
+        # 为游戏的每个类型增加5分权重
+        genres = normalize_genres(game.genres)
+        for genre in genres:
+            prefs["genre_weights"][genre] = prefs["genre_weights"].get(genre, 0) + 5
+        
+        # 保存更新后的偏好
+        store.save_user_preference(user_id, prefs["genre_weights"], prefs["clicked_games"])
+        
+        logger.info(f"Added game {game.name} to {user_id}'s wishlist and updated preferences (+5 weight per genre)")
+        return {
+            "message": "Game added to wishlist",
+            "app_id": app_id,
+            "name": game.name,
+            "preference_boost": "+5 per genre"
+        }
         
     except HTTPException:
         raise

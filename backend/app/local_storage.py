@@ -109,7 +109,13 @@ class UserPreferenceStore:
         conn.close()
     
     def update_genre_weight(self, user_id: str, genre: str, increment: int = 1):
-        """更新单个类型的权重"""
+        """更新单个类型的权重
+        
+        Args:
+            user_id: 用户ID
+            genre: 游戏类型
+            increment: 权重增量（默认1，点击=1，加入愿望单=5）
+        """
         prefs = self.get_user_preference(user_id)
         
         if prefs is None:
