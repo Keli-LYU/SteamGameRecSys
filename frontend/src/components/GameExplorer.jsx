@@ -167,9 +167,12 @@ function GameExplorer() {
                                 {/* Tags/Genres */}
                                 {game.genres && game.genres.length > 0 && (
                                     <div className="game-tags">
-                                        {game.genres.slice(0, 3).map((genre, idx) => (
+                                        {game.genres.slice(0, 5).map((genre, idx) => (
                                             <span key={idx} className="tag">{genre}</span>
                                         ))}
+                                        {game.genres.length > 5 && (
+                                            <span className="tag tag-more">+{game.genres.length - 5}</span>
+                                        )}
                                     </div>
                                 )}
                                 
@@ -243,9 +246,12 @@ function GameExplorer() {
                                     {/* Tags/Genres */}
                                     {game.genres && game.genres.length > 0 && (
                                         <div className="game-tags">
-                                            {game.genres.slice(0, 3).map((genre, idx) => (
+                                            {game.genres.slice(0, 5).map((genre, idx) => (
                                                 <span key={idx} className="tag">{genre}</span>
                                             ))}
+                                            {game.genres.length > 5 && (
+                                                <span className="tag tag-more">+{game.genres.length - 5}</span>
+                                            )}
                                         </div>
                                     )}
                                     
