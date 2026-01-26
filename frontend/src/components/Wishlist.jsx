@@ -113,7 +113,7 @@ function Wishlist() {
                                     </div>
 
                                     <div className="game-genres">
-                                        {game.genres.slice(0, 3).map((genre, idx) => (
+                                        {game.genres && game.genres.length > 0 && game.genres.slice(0, 3).map((genre, idx) => (
                                             <span key={idx} className="genre-tag">{genre}</span>
                                         ))}
                                     </div>

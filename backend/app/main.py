@@ -35,6 +35,36 @@ logger = logging.getLogger(__name__)
 
 
 # ============================================
+# 辅助函数
+# ============================================
+def normalize_genres(genres):
+    """
+    规范化genres格式，确保返回正确的字符串数组
+    
+    处理以下情况:
+    - genres是字符串: "Action, Adventure" -> ["Action", "Adventure"]
+    - genres是包含单个逗号分隔字符串的数组: ["Action, Adventure"] -> ["Action", "Adventure"]
+    - genres已经是正确的数组: ["Action", "Adventure"] -> ["Action", "Adventure"]
+    """
+    if not genres:
+        return []
+    
+    # 如果是字符串，直接分割
+    if isinstance(genres, str):
+        return [g.strip() for g in genres.split(", ")] if genres else []
+    
+    # 如果是数组
+    if isinstance(genres, list):
+        # 检查是否是单个元素且包含逗号（需要分割的情况）
+        if len(genres) == 1 and isinstance(genres[0], str) and ", " in genres[0]:
+            return [g.strip() for g in genres[0].split(", ")]
+        # 已经是正确的数组格式
+        return genres
+    
+    return []
+
+
+# ============================================
 # 应用生命周期管理
 # ============================================
 @asynccontextmanager
@@ -99,7 +129,7 @@ async def root():
 # ============================================
 # API路由 - 游戏数据管理
 # ============================================
-@app.get("/games", response_model=List[Game])
+@app.get("/games")
 async def get_games(skip: int = 0, limit: int = 20):
     """
     获取游戏列表 (支持分页)
@@ -110,7 +140,15 @@ async def get_games(skip: int = 0, limit: int = 20):
     """
     try:
         games = await Game.find_all().skip(skip).limit(limit).to_list()
-        return games
+        # 规范化genres格式并添加_id字段
+        result = []
+        for game in games:
+            game_dict = game.dict()
+            game_dict["genres"] = normalize_genres(game.genres)
+            # 确保_id字段存在（前端需要）
+            game_dict["_id"] = str(game.id)
+            result.append(game_dict)
+        return result
     except Exception as e:
         logger.error(f"Failed to fetch games: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -152,11 +190,23 @@ async def delete_game(game_id: str):
     删除游戏 (通过MongoDB ObjectId)
     """
     try:
+        from bson import ObjectId
+        from bson.errors import InvalidId
+        
+        # 验证ObjectId格式
+        try:
+            obj_id = ObjectId(game_id)
+        except (InvalidId, Exception) as e:
+            logger.error(f"Invalid game_id format: {game_id}")
+            raise HTTPException(status_code=400, detail=f"Invalid game ID format: {game_id}")
+        
         game = await Game.get(game_id)
         if not game:
             raise HTTPException(status_code=404, detail="Game not found")
         await game.delete()
         return {"message": "Game deleted successfully", "game_id": game_id}
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed to delete game {game_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -200,6 +250,9 @@ async def get_top_steam_games(limit: int = 20):
     """
     try:
         games = await steam_service.get_top_games(limit)
+        # 规范化genres格式
+        for game in games:
+            game["genres"] = normalize_genres(game.get("genres", []))
         return games
     except Exception as e:
         logger.error(f"Failed to fetch top games: {e}")
@@ -245,8 +298,11 @@ async def get_recommendations(user_id: str = "default_user", limit: int = 10):
         # 根据偏好权重计算每个游戏的得分
         scored_games = []
         for game in all_games:
+            # 规范化genres格式
+            genres = normalize_genres(game.genres)
+            
             score = 0
-            for genre in game.genres:
+            for genre in genres:
                 score += genre_weights.get(genre, 0)
             
             scored_games.append({
@@ -254,7 +310,7 @@ async def get_recommendations(user_id: str = "default_user", limit: int = 10):
                 "app_id": game.app_id,
                 "name": game.name,
                 "price": game.price,
-                "genres": game.genres,
+                "genres": genres,
                 "description": game.description,
                 "positive_reviews": game.positive_reviews,
                 "negative_reviews": game.negative_reviews,
