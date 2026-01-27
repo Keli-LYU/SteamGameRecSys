@@ -3,7 +3,7 @@ Beanie Document Models (MongoDB ODM)
 数据模型定义 - 使用Beanie ODM定义MongoDB集合的Schema
 包含三个核心模型: Game, User, SentimentLog
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List
 from beanie import Document
 from pydantic import BaseModel, Field
@@ -25,7 +25,7 @@ class Game(Document):
     release_date: Optional[str] = Field(None, description="发布日期")
     positive_reviews: Optional[int] = Field(None, description="正面评价数")
     negative_reviews: Optional[int] = Field(None, description="负面评价数")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     class Settings:
         name = "games"  # MongoDB集合名称
@@ -43,8 +43,8 @@ class User(Document):
     username: str = Field(..., description="用户名")
     favorite_games: List[int] = Field(default_factory=list, description="收藏的游戏App ID列表")
     play_history: List[int] = Field(default_factory=list, description="游玩历史")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    last_active: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    last_active: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     class Settings:
         name = "users"
@@ -63,7 +63,7 @@ class UserPreference(Document):
     user_id: str = Field(default="default_user", description="用户ID")
     genre_weights: dict = Field(default_factory=dict, description="类型权重字典 {genre: weight}")
     clicked_games: List[int] = Field(default_factory=list, description="点击过的游戏App ID列表")
-    last_updated: datetime = Field(default_factory=datetime.utcnow)
+    last_updated: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     class Settings:
         name = "user_preferences"
@@ -88,7 +88,7 @@ class SentimentLog(Document):
     text: str = Field(..., description="待分析的文本")
     label: str = Field(..., description="情感标签: POSITIVE, NEGATIVE, NEUTRAL")
     confidence: float = Field(..., description="模型置信度 (0-1)", ge=0.0, le=1.0)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     # 可选字段: 如果文本来自Steam评论,可关联游戏ID
     related_game_id: Optional[int] = Field(None, description="关联的游戏App ID (可选)")
@@ -111,4 +111,4 @@ class SentimentResponse(BaseModel):
     label: str = Field(..., description="情感标签")
     confidence: float = Field(..., description="置信度")
     text: str = Field(..., description="原始文本")
-    timestamp: datetime = Field(default_factory=datetime.utcnow, description="分析时间")
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), description="分析时间")
