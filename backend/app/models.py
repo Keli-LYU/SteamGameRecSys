@@ -29,9 +29,6 @@ class Game(Document):
     
     class Settings:
         name = "games"  # MongoDB集合名称
-        indexes = [
-            "app_id",  # 为app_id创建索引以加速查询
-        ]
 
 
 # ============================================
@@ -51,7 +48,6 @@ class User(Document):
     
     class Settings:
         name = "users"
-        indexes = ["user_id"]
 
 
 # ============================================
@@ -71,7 +67,6 @@ class UserPreference(Document):
     
     class Settings:
         name = "user_preferences"
-        indexes = ["user_id"]
 
 
 # ============================================
@@ -100,10 +95,6 @@ class SentimentLog(Document):
     
     class Settings:
         name = "sentiment_logs"
-        indexes = [
-            "created_at",  # 按时间索引以支持历史查询
-            "label",       # 按标签索引以支持过滤
-        ]
 
 
 # ============================================
