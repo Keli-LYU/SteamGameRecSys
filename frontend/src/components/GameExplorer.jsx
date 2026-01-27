@@ -232,7 +232,12 @@ function GameExplorer() {
                                     onClick={() => openSteamPage(game.app_id)}
                                     style={{ cursor: 'pointer', flex: 1 }}
                                 >
-                                    <h3>{game.name}</h3>
+                                    <div className="game-header">
+                                        <h3>{game.name}</h3>
+                                        <span className="game-price">
+                                            {game.price !== undefined ? (game.price ? `$${game.price}` : 'Free') : ''}
+                                        </span>
+                                    </div>
                                     
                                     {game.genres && game.genres.length > 0 && (
                                         <div className="game-tags">
@@ -306,7 +311,12 @@ function GameExplorer() {
                                 onClick={() => openSteamPage(game.app_id)}
                                 style={{ cursor: 'pointer', flex: 1 }}
                             >
-                                <h3>{game.name}</h3>
+                                <div className="game-header">
+                                    <h3>{game.name}</h3>
+                                    <span className="game-price">
+                                        {game.price !== undefined ? (game.price ? `$${game.price}` : 'Free') : ''}
+                                    </span>
+                                </div>
                                 
                                 {/* Tags/Genres */}
                                 {game.genres && game.genres.length > 0 && (
@@ -401,7 +411,12 @@ function GameExplorer() {
                                     onClick={() => handleRecommendedGameClick(game.app_id)}
                                     style={{ cursor: 'pointer' }}
                                 >
-                                    <h3>{game.name}</h3>
+                                    <div className="game-header">
+                                        <h3>{game.name}</h3>
+                                        <span className="game-price">
+                                            {game.price !== undefined ? (game.price ? `$${game.price}` : 'Free') : ''}
+                                        </span>
+                                    </div>
                                     
                                     {/* Tags/Genres */}
                                     {game.genres && game.genres.length > 0 && (
@@ -412,12 +427,6 @@ function GameExplorer() {
                                             {game.genres.length > 5 && (
                                                 <span className="tag tag-more">+{game.genres.length - 5}</span>
                                             )}
-                                        </div>
-                                    )}
-                                    
-                                    {game.price !== undefined && (
-                                        <div className="game-price-display">
-                                            {game.price ? `$${game.price}` : 'Free'}
                                         </div>
                                     )}
                                     

@@ -717,12 +717,30 @@ async def remove_from_wishlist(app_id: int, user_id: str = "default_user"):
         if app_id not in user.favorite_games:
             raise HTTPException(status_code=404, detail="Game not in wishlist")
         
+        # 获取游戏信息以获取genres
+        game = await Game.find_one(Game.app_id == app_id)
+        
         # 从wishlist中移除
         user.favorite_games.remove(app_id)
         user.last_active = datetime.utcnow()
         await user.save()
         
-        logger.info(f"Removed game {app_id} from {user_id}'s wishlist")
+        # 减少用户偏好权重（从愿望单移除减少5分）
+        if game:
+            store = get_preference_store()
+            prefs = store.get_user_preference(user_id)
+            if prefs is not None:
+                # 为游戏的每个类型减少5分权重
+                genres = normalize_genres(game.genres)
+                for genre in genres:
+                    current_weight = prefs["genre_weights"].get(genre, 0)
+                    # 减少5分，但不低于0
+                    prefs["genre_weights"][genre] = max(0, current_weight - 5)
+                
+                # 保存更新后的偏好
+                store.save_user_preference(user_id, prefs["genre_weights"], prefs["clicked_games"])
+                logger.info(f"Removed game {app_id} from {user_id}'s wishlist and decreased preferences (-5 weight per genre)")
+        
         return {"message": "Game removed from wishlist", "app_id": app_id}
         
     except HTTPException:

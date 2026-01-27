@@ -110,9 +110,17 @@ class SteamService:
                     detail_response.raise_for_status()
                     detail_data = detail_response.json()
                     
+                    # 处理价格
+                    price_raw = detail_data.get("price", "0")
+                    try:
+                        price = float(price_raw) / 100 if price_raw not in [None, '', '0'] else 0.0
+                    except (ValueError, TypeError):
+                        price = 0.0
+                    
                     games.append({
                         "app_id": int(app_id),
                         "name": game_data.get("name", "Unknown"),
+                        "price": price,
                         "positive_reviews": game_data.get("positive", 0),
                         "negative_reviews": game_data.get("negative", 0),
                         "genres": detail_data.get("genre", "").split(", ") if detail_data.get("genre") else [],

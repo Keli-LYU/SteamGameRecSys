@@ -61,14 +61,9 @@ function Wishlist() {
         }
     };
     const removeFromWishlist = async (appId, gameName) => {
-        if (!window.confirm(`Remove "${gameName}" from your wishlist?`)) {
-            return;
-        }
-        
         try {
             await axios.delete(`${API_BASE_URL}/wishlist/${appId}?user_id=default_user`);
             await loadGames();
-            alert(`${gameName} has been removed from your wishlist`);
         } catch (err) {
             console.error('Failed to remove game:', err);
             alert('Failed to remove game from wishlist');
@@ -169,10 +164,6 @@ function Wishlist() {
                                             <span className="genre-tag tag-more">+{game.genres.length - 5}</span>
                                         )}
                                     </div>
-
-                                    <p className="game-description">
-                                        {game.description?.substring(0, 100)}...
-                                    </p>
 
                                     {(() => {
                                         const rating = getReviewRating(game.positive_reviews || 0, game.negative_reviews || 0);
