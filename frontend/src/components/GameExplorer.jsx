@@ -26,18 +26,45 @@ function GameExplorer() {
     const [error, setError] = useState(null);
     const [imageErrors, setImageErrors] = useState({});
     const [wishlistAppIds, setWishlistAppIds] = useState(new Set());
+    const [gamesPerRow, setGamesPerRow] = useState(5);
+
+    // 计算每行可以显示多少个游戏
+    const calculateGamesPerRow = () => {
+        const containerPadding = 80; // 40px * 2
+        const cardMinWidth = 240;
+        const gap = 20;
+        const availableWidth = window.innerWidth - containerPadding;
+        const perRow = Math.floor((availableWidth + gap) / (cardMinWidth + gap));
+        return Math.max(perRow, 2); // 至少显示2个
+    };
+
+    // 监听窗口大小变化
+    useEffect(() => {
+        const handleResize = () => {
+            const perRow = calculateGamesPerRow();
+            setGamesPerRow(perRow);
+        };
+
+        // 初始计算
+        handleResize();
+
+        // 添加resize监听
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     // 加载游戏数据和愿望单
     useEffect(() => {
         loadTopGames();
         loadRecommendations();
         loadWishlist();
-    }, []);
+    }, [gamesPerRow]); // 当每行数量变化时重新加载
 
     const loadTopGames = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${API_BASE_URL}/steam/top/games?limit=10`);
+            const limit = gamesPerRow * 2; // 显示两行
+            const response = await axios.get(`${API_BASE_URL}/steam/top/games?limit=${limit}`);
             setTopGames(response.data);
             setError(null);
         } catch (err) {
@@ -51,7 +78,8 @@ function GameExplorer() {
     const loadRecommendations = async () => {
         try {
             setLoadingRecommendations(true);
-            const response = await axios.get(`${API_BASE_URL}/recommendations?limit=10`);
+            const limit = gamesPerRow * 2; // 显示两行
+            const response = await axios.get(`${API_BASE_URL}/recommendations?limit=${limit}`);
             setRecommendedGames(response.data);
         } catch (err) {
             console.error('Failed to load recommendations:', err);

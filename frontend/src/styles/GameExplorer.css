@@ -1,6 +1,8 @@
 /* Game Explorer Styles */
 .game-explorer {
-    max-width: 1400px;
+    width: 100%;
+    padding: 0 40px;
+    box-sizing: border-box;
 }
 
 /* Search Section */
@@ -40,7 +42,7 @@
 
 .top-games-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 20px;
 }
 
@@ -52,6 +54,7 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    min-height: 340px;
 }
 
 .top-game-card .game-image-container {
@@ -239,7 +242,7 @@
 
 .recommended-games-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 20px;
 }
 
@@ -251,6 +254,7 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    min-height: 340px;
 }
 
 .recommended-game-card .game-image-container {
