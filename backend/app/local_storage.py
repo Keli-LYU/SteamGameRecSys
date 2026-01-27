@@ -4,7 +4,7 @@
 """
 import sqlite3
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Optional
 import os
 
@@ -102,7 +102,7 @@ class UserPreferenceStore:
             user_id,
             json.dumps(genre_weights),
             json.dumps(clicked_games),
-            datetime.utcnow().isoformat()
+            datetime.now(timezone.utc).isoformat()
         ))
         
         conn.commit()
@@ -155,7 +155,7 @@ class UserPreferenceStore:
         """, (
             app_id,
             json.dumps(game_data),
-            datetime.utcnow().isoformat()
+            datetime.now(timezone.utc).isoformat()
         ))
         
         conn.commit()

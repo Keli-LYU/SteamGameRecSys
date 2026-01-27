@@ -15,7 +15,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.database import init_db, close_db
 from app.models import Game, SentimentLog, SentimentRequest, SentimentResponse, UserPreference, User
@@ -122,7 +122,7 @@ async def root():
         "status": "healthy",
         "service": "SteamGameRecSys Backend",
         "version": "1.0.0",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
 
@@ -662,7 +662,7 @@ async def add_to_wishlist(app_id: int, user_id: str = "default_user"):
         
         # 添加到wishlist
         user.favorite_games.append(app_id)
-        user.last_active = datetime.utcnow()
+        user.last_active = datetime.now(timezone.utc)
         await user.save()
         
         # 更新用户偏好权重（加入愿望单增加5分 - 表示强烈兴趣）
@@ -720,9 +720,9 @@ async def remove_from_wishlist(app_id: int, user_id: str = "default_user"):
         # 获取游戏信息以获取genres
         game = await Game.find_one(Game.app_id == app_id)
         
-        # 从wishlist中移除
+        # 从 wishlist 中移除
         user.favorite_games.remove(app_id)
-        user.last_active = datetime.utcnow()
+        user.last_active = datetime.now(timezone.utc)
         await user.save()
         
         # 减少用户偏好权重（从愿望单移除减少5分）
