@@ -18,6 +18,23 @@ const getSteamImageUrl = (appId, imageType = 'header') => {
     return imageTypes[imageType] || imageTypes.header;
 };
 
+// 计算Steam评价等级
+const getReviewRating = (positive, negative) => {
+    const total = positive + negative;
+    if (total === 0) return { label: 'No Reviews', percentage: 0 };
+    
+    const percentage = (positive / total) * 100;
+    
+    if (percentage >= 95 && total >= 500) return { label: 'Overwhelmingly Positive', percentage };
+    if (percentage >= 80) return { label: 'Very Positive', percentage };
+    if (percentage >= 70 && total >= 50) return { label: 'Positive', percentage };
+    if (percentage >= 70) return { label: 'Mostly Positive', percentage };
+    if (percentage >= 40) return { label: 'Mixed', percentage };
+    if (percentage >= 20) return { label: 'Mostly Negative', percentage };
+    if (percentage < 20 && total >= 500) return { label: 'Overwhelmingly Negative', percentage };
+    return { label: 'Negative', percentage };
+};
+
 function Wishlist() {
     const [games, setGames] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -157,16 +174,26 @@ function Wishlist() {
                                         {game.description?.substring(0, 100)}...
                                     </p>
 
-                                    {game.positive_reviews !== null && (
-                                        <div className="game-reviews">
-                                            <span className="positive">
-                                                +{game.positive_reviews}
-                                            </span>
-                                            <span className="negative">
-                                                -{game.negative_reviews}
-                                            </span>
-                                        </div>
-                                    )}
+                                    {(() => {
+                                        const rating = getReviewRating(game.positive_reviews || 0, game.negative_reviews || 0);
+                                        const getLabelClass = (label) => {
+                                            if (label.includes('Positive')) return 'positive-rating';
+                                            if (label.includes('Negative')) return 'negative-rating';
+                                            if (label === 'Mixed') return 'mixed-rating';
+                                            return '';
+                                        };
+                                        return (
+                                            <div className="game-reviews">
+                                                <div className="review-bar">
+                                                    <div 
+                                                        className="review-bar-positive" 
+                                                        style={{ width: `${rating.percentage}%` }}
+                                                    />
+                                                </div>
+                                                <div className={`review-label ${getLabelClass(rating.label)}`}>{rating.label}</div>
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                                 
                                 <button 

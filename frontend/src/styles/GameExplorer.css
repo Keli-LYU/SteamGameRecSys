@@ -267,9 +267,42 @@
 
 .top-game-card .reviews {
     display: flex;
-    gap: 12px;
-    font-size: 14px;
+    flex-direction: column;
+    gap: 6px;
     margin-bottom: 12px;
+}
+
+.review-bar {
+    height: 8px;
+    background: #ef4444;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.review-bar-positive {
+    height: 100%;
+    background: #10b981;
+    transition: width 0.3s ease;
+}
+
+.review-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    text-align: center;
+}
+
+.review-label.positive-rating {
+    color: #10b981;
+}
+
+.review-label.negative-rating {
+    color: #ef4444;
+}
+
+.review-label.mixed-rating {
+    color: #f59e0b;
 }
 
 .reviews .positive {
