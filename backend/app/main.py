@@ -154,6 +154,53 @@ async def get_games(skip: int = 0, limit: int = 20):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/games/search")
+async def search_games(q: str, limit: int = 20):
+    """
+    搜索游戏 (按名称或标签)
+    
+    Query参数:
+    - q: 搜索关键词
+    - limit: 返回的最大记录数 (默认20)
+    """
+    try:
+        if not q or len(q.strip()) == 0:
+            return []
+        
+        search_term = q.strip()
+        
+        # 使用MongoDB的文本搜索或正则表达式搜索
+        # 搜索名称包含关键词的游戏
+        name_matches = await Game.find(
+            {"name": {"$regex": search_term, "$options": "i"}}
+        ).limit(limit).to_list()
+        
+        # 搜索genres包含关键词的游戏
+        genre_matches = await Game.find(
+            {"genres": {"$regex": search_term, "$options": "i"}}
+        ).limit(limit).to_list()
+        
+        # 合并结果并去重
+        seen_ids = set()
+        result = []
+        
+        for game in name_matches + genre_matches:
+            if game.id not in seen_ids:
+                seen_ids.add(game.id)
+                game_dict = game.dict()
+                game_dict["genres"] = normalize_genres(game.genres)
+                game_dict["_id"] = str(game.id)
+                result.append(game_dict)
+                
+                if len(result) >= limit:
+                    break
+        
+        return result
+    except Exception as e:
+        logger.error(f"Failed to search games: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/games", response_model=Game)
 async def create_game(game: Game):
     """

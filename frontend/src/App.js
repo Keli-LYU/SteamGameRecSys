@@ -17,7 +17,6 @@ function App() {
                 <nav className="sidebar">
                     <div className="sidebar-header">
                         <h1>SteamGameRecSys</h1>
-                        <p>游戏推荐与智能分析</p>
                     </div>
 
                     <ul className="nav-links">

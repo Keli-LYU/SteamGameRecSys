@@ -26,6 +26,9 @@ function GameExplorer() {
     const [error, setError] = useState(null);
     const [imageErrors, setImageErrors] = useState({});
     const [wishlistAppIds, setWishlistAppIds] = useState(new Set());
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [searching, setSearching] = useState(false);
 
     // 加载游戏数据和愿望单
     useEffect(() => {
@@ -68,6 +71,30 @@ function GameExplorer() {
         } catch (err) {
             console.error('Failed to load wishlist:', err);
         }
+    };
+
+    const handleSearch = async (e) => {
+        e.preventDefault();
+        if (!searchQuery.trim()) {
+            setSearchResults([]);
+            return;
+        }
+
+        try {
+            setSearching(true);
+            const response = await axios.get(`${API_BASE_URL}/games/search?q=${encodeURIComponent(searchQuery)}&limit=20`);
+            setSearchResults(response.data);
+        } catch (err) {
+            console.error('Failed to search games:', err);
+            setError('搜索失败，请重试');
+        } finally {
+            setSearching(false);
+        }
+    };
+
+    const clearSearch = () => {
+        setSearchQuery('');
+        setSearchResults([]);
     };
 
     const recordGameClick = async (appId) => {
@@ -125,14 +152,104 @@ function GameExplorer() {
     return (
         <div className="game-explorer">
             <header className="page-header">
-                <h1>Game Explorer</h1>
-                <p>Browse and discover Steam games</p>
+                <div className="header-content">
+                    <div className="header-text">
+                        <h1>Game Explorer</h1>
+                        <p>Browse and discover Steam games</p>
+                    </div>
+                    <form className="search-form" onSubmit={handleSearch}>
+                        <input
+                            type="text"
+                            className="search-input"
+                            placeholder="Search by game name or tags..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                        <button type="submit" className="search-button" disabled={searching}>
+                            {searching ? 'Searching...' : 'Search'}
+                        </button>
+                        {searchQuery && (
+                            <button type="button" className="clear-button" onClick={clearSearch}>
+                                ✕
+                            </button>
+                        )}
+                    </form>
+                </div>
             </header>
 
             {error && (
                 <div className="error-banner">
                     <p>{error}</p>
                 </div>
+            )}
+
+            {/* Search Results */}
+            {searchResults.length > 0 && (
+                <section className="search-results-section">
+                    <div className="section-header">
+                        <h2>Search Results ({searchResults.length})</h2>
+                        <button className="clear-search-button" onClick={clearSearch}>
+                            Clear Search
+                        </button>
+                    </div>
+                    <div className="search-results-grid">
+                        {searchResults.map(game => (
+                            <div key={game.app_id} className="top-game-card">
+                                <div className="game-image-container" onClick={() => openSteamPage(game.app_id)}>
+                                    {!imageErrors[game.app_id] ? (
+                                        <img 
+                                            src={getSteamImageUrl(game.app_id, 'header')} 
+                                            alt={game.name}
+                                            className="game-image"
+                                            onError={() => handleImageError(game.app_id)}
+                                        />
+                                    ) : (
+                                        <div className="game-image-placeholder">
+                                            <span>🎮</span>
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                <div 
+                                    className="game-content"
+                                    onClick={() => openSteamPage(game.app_id)}
+                                    style={{ cursor: 'pointer', flex: 1 }}
+                                >
+                                    <h3>{game.name}</h3>
+                                    
+                                    {game.genres && game.genres.length > 0 && (
+                                        <div className="game-tags">
+                                            {game.genres.slice(0, 5).map((genre, idx) => (
+                                                <span key={idx} className="tag">{genre}</span>
+                                            ))}
+                                            {game.genres.length > 5 && (
+                                                <span className="tag tag-more">+{game.genres.length - 5}</span>
+                                            )}
+                                        </div>
+                                    )}
+                                    
+                                    <div className="reviews">
+                                        <span className="positive">+{game.positive_reviews}</span>
+                                        <span className="negative">-{game.negative_reviews}</span>
+                                    </div>
+                                </div>
+                                <button 
+                                    className={`add-button ${isInWishlist(game.app_id) ? 'in-wishlist' : ''}`}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (!isInWishlist(game.app_id)) {
+                                            addGameToLibrary(game.app_id);
+                                        }
+                                    }}
+                                    title={isInWishlist(game.app_id) ? "Already in wishlist" : "Add to your wishlist"}
+                                    disabled={isInWishlist(game.app_id)}
+                                >
+                                    {isInWishlist(game.app_id) ? '✓ In Wishlist' : 'Add to Wishlist'}
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </section>
             )}
 
             {/* Top Games from Steam */}
